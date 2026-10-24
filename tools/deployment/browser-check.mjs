@@ -49,6 +49,22 @@ try {
   assert.equal(await evaluate('Array.from(document.querySelectorAll(".strategy-card")).filter(e=>!e.hidden).length'), 15);
   await evaluate(() => document.querySelector('[aria-label="Distribution course filter"]').querySelectorAll('button')[2].click());
   assert.ok(await evaluate('!!document.querySelector("#findings [aria-pressed=true]")'));
+  // Every session view must expose the same complete weekly series and denominators.
+  for (const measure of [0, 1]) for (const topic of [0, 1]) {
+    await evaluate(`document.querySelector('[aria-label="Session measure"]').querySelectorAll('button')[${measure}].click()`);
+    await evaluate(`document.querySelector('[aria-label="Topic response type"]').querySelectorAll('button')[${topic}].click()`);
+    assert.deepEqual(await evaluate('Array.from(document.querySelectorAll(".session-timeline button"), b=>b.textContent)'), ['W4','W5','W6','W7','W8','W9','W10']);
+    await evaluate(() => Array.from(document.querySelectorAll('.session-timeline button')).find(b=>b.textContent==='W7').click());
+    const detail = await evaluate('document.querySelector(".session-detail").textContent');
+    for (const expected of ['G1 / Week 7','72 submitted records','72 valid resource choices','71 valid ratings','4.690 / 5']) assert.ok(detail.includes(expected), expected);
+    assert.ok(await evaluate('document.querySelector(".session-chart svg").textContent.includes("W7")'));
+    assert.ok(await evaluate('document.querySelector(".experience-summary").textContent.includes("96.3")'));
+  }
+  await evaluate(() => document.querySelector('[aria-label="Session course"]').querySelectorAll('button')[1].click());
+  assert.equal(await evaluate('document.querySelectorAll(".session-timeline button").length'), 16);
+  assert.ok(await evaluate('document.querySelector(".experience-summary").textContent.includes("1,119")'));
+  await evaluate(() => document.querySelector('[aria-label="Session course"]').querySelectorAll('button')[0].click());
+  assert.equal(await evaluate('document.querySelectorAll(".session-timeline button").length'), 7);
   const theme = await evaluate('document.documentElement.dataset.theme');
   await evaluate(() => document.querySelector('button[aria-label^="Switch to"]').click());
   assert.notEqual(await evaluate('document.documentElement.dataset.theme'), theme);
@@ -70,7 +86,7 @@ try {
   assert.equal(await evaluate('document.querySelectorAll("#findings svg").length > 0'), true);
   const mobile = await call('Page.captureScreenshot', { format: 'png' }); writeFileSync(path.join(audit, 'mobile.png'), Buffer.from(mobile.data, 'base64'));
   assert.deepEqual(errors, [], 'Browser JavaScript errors'); assert.deepEqual(failed, [], 'Browser request failures');
-  console.log('PASS: Chrome rendered desktop/mobile, loaded local assets, switched strategy/course filters and theme, followed navigation, opened/closed mobile menu, and invoked figure export; no JS errors, failed requests or mobile overflow.');
+  console.log('PASS: Chrome rendered desktop/mobile, all session views include Week 7 with exact denominators, course filters and theme work, navigation and mobile menu work, figure download succeeds; no JS errors, failed requests or mobile overflow.');
 } finally {
   clearTimeout(timeout); ws?.close(); chrome.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
 }

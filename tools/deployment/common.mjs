@@ -19,7 +19,7 @@ export function walk(dir = root, skip = skipped) {
 }
 export const relative = file => path.relative(root, file).split(path.sep).join('/');
 export const publicPath = file => /^(?:e2e\/|tools\/deployment\/|\.github\/workflows\/e2e-pages\.yml$|deployment\.config\.json$|\.gitignore$|DEPLOYMENT\.txt$|DEPLOYMENT-VALIDATION\.txt$)/.test(file);
-export const privatePath = file => /(?:^|\/)(?:Analysis|References|Figures|manuscripts|supplemental|supplementary|reviewer_responses|reviewer_comments|raw_data|datasets|student_records|institutional_documents|secrets|credentials)(?:\/|$)|\.(?:docx?|pdf|xlsx?|pptx?|ipynb|csv|ris|pem|key|p12|pfx)$|(?:^|\/)\.env(?:\.|$)|(?:^|\/)(?:\.npmrc|\.netrc|\.git-credentials)$|(?:credentials|service-account).*\.json$|(?:^|\/)id_(?:rsa|ed25519)/i.test(file);
+export const privatePath = file => /(?:^|\/)(?:Analysis(?:-rev\.[\d.]+)?|References|Figures|manuscripts|supplemental|supplementary|reviewer_responses|reviewer_comments|raw_data|datasets|student_records|institutional_documents|secrets|credentials)(?:\/|$)|\.(?:docx?|pdf|xlsx?|pptx?|ipynb|csv|ris|pem|key|p12|pfx)$|(?:^|\/)\.env(?:\.|$)|(?:^|\/)(?:\.npmrc|\.netrc|\.git-credentials)$|(?:credentials|service-account).*\.json$|(?:^|\/)id_(?:rsa|ed25519)/i.test(file);
 export function credentialHits(text) {
   const rules = [
     ['private key', /-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY-----/g],

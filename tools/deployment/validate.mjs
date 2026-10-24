@@ -39,6 +39,7 @@ for (const file of actual) {
   const text = bytes.toString('utf8');
   assert.equal(credentialHits(text).length, 0, 'Possible credential: ' + file);
   assert.ok(!/\b(?:analysis_id|record_id|identifier_to_email|P\d{3}|G[12]_S\d+_R\d+)\b/.test(text), 'Participant-level data marker: ' + file);
+  assert.ok(!/sourceHashes|CAEE_|\b(?:Analysis(?:-rev\.[\d.]+)?|Figures|References)[/\\]|\b[A-Z]:[/\\]|OneDrive|\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(text), 'Private source reference, local path or email in public content: ' + file);
   if (file.endsWith('.html')) for (const tag of text.matchAll(/<(?:a|link|script|img|source|video|audio|iframe|form)\b[^>]*>/g)) {
     for (const attr of tag[0].matchAll(/\b(?:href|src|poster|action)="([^"]+)"/g)) checkLink(attr[1], file, !/^<a\b/.test(tag[0]));
     for (const srcset of tag[0].matchAll(/\bsrcset="([^"]+)"/g)) for (const entry of srcset[1].split(',')) checkLink(entry.trim().split(/\s+/)[0], file, true);
@@ -61,6 +62,16 @@ const approved = c.publicReleaseApproved === true && c.domainConfirmed === true;
 assert.ok(html.includes(approved ? 'content="index,follow"' : 'content="noindex,nofollow"'));
 assert.ok(read('e2e/robots.txt').includes(approved ? 'Allow: /' : 'Disallow: /'));
 const data = await import(pathToFileURL(path.join(site, 'js/data.js')).href);
+assert.equal(data.research.provenance, undefined, 'Private source metadata must not ship');
+assert.equal(data.research.sessions.length, 23);
+assert.equal(data.research.sessions.reduce((sum, row) => sum + row.submissions, 0), 1634);
+assert.deepEqual(data.research.sessions.filter(row => row.course === 'G1').map(row => row.session), [4, 5, 6, 7, 8, 9, 10]);
+assert.equal(data.research.pulse.G1.submissions, 515);
+assert.equal(data.research.pulse.G1.valid_ratings, 514);
+assert.equal(data.research.pulse.G1.upper_two_ratings, 495);
+assert.equal(data.research.pulse.G1.course_related_unresolved + data.research.pulse.G2.course_related_unresolved, 73);
+assert.equal(data.research.pulse.G1.upper_two_with_unresolved + data.research.pulse.G2.upper_two_with_unresolved, 67);
+assert.ok(!/Week 7 was unavailable|443 records across six|1,562|64<span> \/ 70/.test(html), 'Stale session claims');
 // Source comparison is available locally, but not required in a public checkout.
 for (const [key, source] of [['research', 'research.json'], ['searches', 'searches.json'], ['bibliography', 'bibliography.json']]) {
   if (existsSync(path.join(root, 'research-site/src/data', source))) assert.deepEqual(data[key], JSON.parse(read('research-site/src/data/' + source)), 'Research data changed during copying');

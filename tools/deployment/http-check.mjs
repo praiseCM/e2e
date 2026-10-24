@@ -15,7 +15,7 @@ try {
     if (file.endsWith('.png')) assert.match(response.headers.get('content-type'), /image\/png/);
     await response.arrayBuffer();
   }
-  for (const file of ['Analysis/data/primary_analysis.csv', 'research-site/index.html', '.env', 'not-a-real-page']) {
+  for (const file of ['Analysis/data/primary_analysis.csv', 'Analysis-rev.1/data/pulse_coded.csv', 'research-site/index.html', '.env', 'not-a-real-page']) {
     const response = await fetch(origin + '/' + file); assert.ok([403, 404].includes(response.status), 'Private or unknown URL served: ' + file); await response.arrayBuffer();
   }
   assert.equal((await fetch(origin + '/')).status, 200);

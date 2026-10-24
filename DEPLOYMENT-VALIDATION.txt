@@ -1,4 +1,28 @@
-Deployment validation record - 2026-10-24
+Current website validation - 2026-10-24
+
+PASS: 1,634 session submissions across 23 forms; G1 contains seven weeks
+(4 through 10), 515 submissions, 514 valid ratings and 495 upper-two ratings.
+Favorable ratings coexist with course-related unresolved topics in 67/73
+selected records. Week 7 uses the same presentation as the other weeks.
+
+PASS: all session denominators, rating means, response statuses, topic counts,
+longitudinal distributions and comparison intervals match the local analysis.
+PASS: all 37 interaction templates; 19 allowlisted deployment files; 41 local
+references; HTTP assets and private-path isolation; desktop/mobile browser
+interactions, session filters, theme, navigation and completed figure export.
+No browser exceptions, failed requests or mobile horizontal overflow occurred.
+PASS: public artifact contains no detected private source filenames, hashes,
+local paths, email addresses, participant identifiers or credential patterns.
+Private documents, analysis inputs and authoring sources remain ignored.
+PASS: existing GitHub Pages hostname and HTTPS settings verified.
+
+The user authorized this website update and push. Only explicit public paths
+are staged; the staged-file privacy scan must pass before commit and push.
+
+Historical initial preparation record follows; pending/setup statements below
+describe that earlier preparation, rather than the current deployment state.
+
+Deployment validation record - initial preparation, 2026-10-24
 
 Overall: STAGED-FILE REVIEW REQUIRED. Commit and push await user approval.
 Live deployment settings and DNS/HTTPS still require verification.
