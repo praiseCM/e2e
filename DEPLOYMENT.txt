@@ -1,0 +1,172 @@
+Prepared GitHub Pages deployment
+
+The website artifact is e2e/. It includes the full existing static research
+website with local scripts/styles, images, assets, favicons, CNAME, .nojekyll,
+404.html, robots.txt, sitemap.xml, and site.webmanifest. All existing source
+files remain in their original locations. Do not publish the workspace root.
+
+Current status: PREPARED FOR STAGED-FILE REVIEW; commit and push await approval.
+
+Confirmed settings and remaining setup
+
+1. The user confirmed the exact subdomain as e2e.praiser.us.
+2. The user confirmed https://github.com/PraiseCM/e2e.git. It is configured as
+   origin for fetch and push. git ls-remote origin returned no refs during
+   preparation. The local main branch has no commits yet.
+3. The user approved public release of the current website's research narrative,
+   aggregate findings, references, search queries and aggregate figure downloads.
+   Original manuscripts, supplementary files and participant data are excluded.
+4. Verify DNS ownership and configuration for praiser.us and e2e.praiser.us.
+   Live DNS, GitHub Pages custom-domain settings and HTTPS for this hostname
+   have not been verified; a working authoritative DNS configuration is needed.
+
+Update deployment.config.json after these decisions:
+  domain: e2e.praiser.us (confirmed)
+  domainConfirmed: true
+  repository: PraiseCM/e2e (confirmed)
+  branch: main (or the intended production branch)
+  publicReleaseApproved: true (confirmed by the user for the current website)
+  releaseNote: a non-sensitive description of what was approved
+
+Then regenerate e2e/ with the build command below. Unapproved builds use
+noindex/nofollow and robots Disallow; these are indexing hints, not privacy
+controls. The release validator and deployment workflow enforce the gates.
+
+Repository and privacy boundaries
+
+The root .gitignore excludes Office/PDF documents, research folders, CSV/RIS
+exports, notebooks, authoring source, caches, environment files, common secret
+filenames, private keys, dependencies, editor files, and temporary files.
+Git ignore cannot match file contents and does not untrack existing files.
+scan.mjs detects common credential patterns, private paths and participant
+markers; it rejects exposures in public, staged or tracked files. Matching
+credential values are never printed. Any newly detected credential-bearing
+file must be excluded by its exact path or sanitized before staging. If a
+credential was already published, revoke it and assess history separately.
+
+Detected private material includes manuscripts and supplementary documents,
+participant-level analysis inputs and notebooks, research outputs, reference
+exports, and unpublished/publication-unverified research content. These are
+review flags, not proof of a confidentiality breach. No credential pattern
+matches were found in the initial text scan. See the ignored local report at
+.deployment-audit/sensitive-scan.json for file-level findings.
+
+Scanner limits: it does not inspect binary document contents/metadata, archive
+payloads, Git object history, or ignored dependency/cache/browser directories.
+Private Office/PDF files are excluded by filename. Human review remains
+necessary for research release and documents with ambiguous names/content.
+
+Only the 19 files enumerated in e2e/assets/deployment-manifest.json are uploaded
+to Pages. The source generator can be rerun in this author workspace; a public
+checkout does not require or include the private research-site/ authoring tree.
+Validators run directly against the checked-in e2e/ artifact in GitHub Actions.
+
+GitHub Pages and Cloudflare configuration (perform after review)
+
+GitHub Pages serves one site per repository. If the target repository already
+hosts another site/custom domain, use a dedicated repository for this subdomain.
+Uploading e2e/ publishes its CONTENTS at https://e2e.praiser.us/;
+there is no /e2e/ URL prefix. Workflow files must be in the repository-root
+.github/workflows/ directory, not inside research-site/ or e2e/.
+
+1. In the confirmed repository, Settings > Pages > Build and deployment:
+   choose GitHub Actions as the source. Confirm Actions is enabled and allowed.
+2. Verify praiser.us ownership in the PraiseCM account/organization when
+   available. Set the Pages Custom domain to the confirmed subdomain BEFORE
+   directing public DNS at GitHub. Existing sites must not be overwritten.
+3. In the Cloudflare zone for praiser.us configure:
+     Type: CNAME
+     Name: e2e
+     Target: praisecm.github.io
+     Proxy status: DNS only (gray cloud)
+     TTL: Auto
+   The target contains no scheme, repository name, path or trailing slash.
+   Remove conflicting records only after reviewing them; none were changed here.
+   Do not enable flattening for this CNAME: verification needs it visible.
+   If CAA restrictions exist, ensure they permit GitHub's Let's Encrypt issuer.
+4. Push the reviewed files yourself using the commands below. In Actions,
+   select "Validate and deploy e2e site" > Run workflow on the configured branch.
+   Deployment is manual; pushing a commit does not trigger publication.
+5. Wait for GitHub Pages DNS verification and certificate issuance, then enable
+   Settings > Pages > Enforce HTTPS. With DNS-only records, GitHub terminates
+   TLS; Cloudflare SSL mode is not in the visitor request path.
+6. Run live-check.mjs after deployment. Confirm the domain in the browser,
+   navigation, mobile layout, favicon, filters, charts and figure downloads.
+
+CNAME is included for portability, but GitHub Actions Pages deployments ignore
+that file for custom-domain configuration. The Pages Custom domain setting is
+required. No external CDN/font/script is required. Runtime paths are relative;
+canonical/social/sitemap URLs intentionally use the full HTTPS domain. The
+404 page uses / as its home link because the requested deployment is at the
+custom subdomain root. External bibliography destinations require network access
+and were checked for valid HTTPS syntax, not third-party availability.
+
+Local commands (PowerShell, from repository root)
+
+  node tools/deployment/build.mjs
+  node tools/deployment/scan.mjs
+  node tools/deployment/validate.mjs
+  node tools/deployment/http-check.mjs
+  node tools/deployment/browser-check.mjs
+  node tools/deployment/serve.mjs
+
+serve.mjs is optional and stays running at http://127.0.0.1:5182; Ctrl+C stops it.
+Node 24 is sufficient; no npm installation or deployment credentials are needed.
+browser-check.mjs additionally needs local Chrome/Edge (or CHROME_PATH).
+Screenshots and download/profile artifacts remain in ignored .deployment-audit/.
+
+Exact review/staging/commit/push sequence (PowerShell)
+
+Do not run this sequence until the required decisions above are resolved.
+Each failure must stop the sequence. Never use git add . or git add -A here.
+
+  git status --short
+  git remote -v
+  node tools/deployment/build.mjs
+  if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+  node tools/deployment/scan.mjs --release
+  if ($LASTEXITCODE -ne 0) { throw 'Sensitive-file or release check failed' }
+  node tools/deployment/validate.mjs --release
+  if ($LASTEXITCODE -ne 0) { throw 'Deployment validation failed' }
+  node tools/deployment/http-check.mjs
+  if ($LASTEXITCODE -ne 0) { throw 'HTTP validation failed' }
+  git add -- .gitignore .github/workflows/e2e-pages.yml deployment.config.json e2e tools/deployment DEPLOYMENT.txt DEPLOYMENT-VALIDATION.txt
+  if ($LASTEXITCODE -ne 0) { throw 'Staging failed' }
+  node tools/deployment/scan.mjs --staged --release
+  if ($LASTEXITCODE -ne 0) { throw 'Staged-file review failed; do not commit' }
+  git diff --cached --check
+  if ($LASTEXITCODE -ne 0) { throw 'Staged whitespace validation failed' }
+  git diff --cached --stat
+  git diff --cached
+
+STOP here and review the actual staged diff. Then, as separate deliberate steps:
+
+  git commit -m "Prepare isolated e2e website for GitHub Pages"
+  if ($LASTEXITCODE -ne 0) { throw 'Commit failed; do not push' }
+  git status --short
+
+origin is already configured as https://github.com/PraiseCM/e2e.git for fetch
+and push. Verify it before pushing:
+
+  git remote -v
+
+If the remote already contains commits, stop and reconcile its history first;
+do not force push or overwrite an existing website. Inspect git ls-remote origin
+and git remote -v. A clone/worktree of the existing target may be appropriate.
+
+Only after reviewing the remote URL and branch, push manually:
+
+  git push --set-upstream origin main
+
+Use the configured branch instead of main if it was changed. After manual
+deployment, certificate issuance and HTTPS enforcement, validate the live site:
+
+  node tools/deployment/live-check.mjs
+
+Official references
+
+https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site
+https://docs.github.com/en/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https
+https://developers.cloudflare.com/dns/proxy-status/
+https://developers.cloudflare.com/dns/manage-dns-records/troubleshooting/cname-domain-verification/

@@ -1,0 +1,60 @@
+name: Validate and deploy e2e site
+
+# Deploy only when deliberately dispatched after the user reviews and pushes.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'e2e/**'
+      - 'tools/deployment/**'
+      - 'deployment.config.json'
+      - '.github/workflows/e2e-pages.yml'
+      - '.gitignore'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-pages-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Scan repository and public artifact
+        run: node tools/deployment/scan.mjs
+      - name: Check public files and links
+        run: node tools/deployment/validate.mjs
+      - name: Exercise HTTP asset loading and route isolation
+        run: node tools/deployment/http-check.mjs
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Require confirmed domain, repository, branch and public release
+        run: node tools/deployment/validate.mjs --release
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: e2e
+      - name: Deploy approved static artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

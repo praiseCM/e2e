@@ -1,0 +1,25 @@
+{
+  "files": [
+    ".nojekyll",
+    "404.html",
+    "CNAME",
+    "apple-touch-icon.png",
+    "assets/deployment-manifest.json",
+    "assets/icon-192.png",
+    "assets/icon-512.png",
+    "css/site.css",
+    "favicon.ico",
+    "favicon.svg",
+    "images/social-card.png",
+    "index.html",
+    "js/app.js",
+    "js/charts.js",
+    "js/data.js",
+    "js/figure-export.js",
+    "robots.txt",
+    "site.webmanifest",
+    "sitemap.xml"
+  ],
+  "domain": "e2e.praiser.us",
+  "externalRuntimeDependencies": 0
+}

@@ -1,0 +1,8 @@
+{
+  "domain": "e2e.praiser.us",
+  "domainConfirmed": true,
+  "repository": "PraiseCM/e2e",
+  "branch": "main",
+  "publicReleaseApproved": true,
+  "releaseNote": "The user confirmed e2e.praiser.us, the target repository PraiseCM/e2e, and public release of the current website content, including displayed research narratives, aggregate findings, references, search queries and aggregate figure downloads. Original private manuscripts, supplementary files and participant-level data remain excluded. Commit and push require the user's separate approval after staged-file review."
+}
