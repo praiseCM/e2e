@@ -43,6 +43,19 @@ try {
   assert.ok(await evaluate('["home","study","findings","experience","methods","literature","resources","insights"].every(id=>document.querySelector("main section#"+id))'));
   assert.equal(await evaluate('document.querySelectorAll(".strategy-card:not([hidden])").length'), 0);
   assert.equal(await evaluate('document.querySelectorAll(".reference-item:not([hidden])").length'), 0);
+  for (const course of [1, 2, 0]) {
+    await evaluate(`document.querySelector('[aria-label="Course comparison"]').querySelectorAll('button')[${course}].click()`);
+    assert.equal(await evaluate('document.querySelectorAll("#figure-instructional-sequences").length'), 1);
+  }
+  await evaluate('document.querySelector(".instructional-sequences").scrollIntoView({block:"start",behavior:"instant"})');
+  for (let i = 0; i < 50; i++) {
+    if (await evaluate('document.querySelector("#figure-instructional-sequences img").complete && document.querySelector("#figure-instructional-sequences img").naturalWidth > 0')) break;
+    await delay(100);
+  }
+  assert.ok(await evaluate('document.querySelector("#figure-instructional-sequences img").naturalWidth > 0'), 'Instructional diagram did not load');
+  assert.ok(await evaluate('document.querySelector("#instructional-caption").textContent.startsWith("Figure 2.")'));
+  await delay(600);
+  const instructionalDesktop = await call('Page.captureScreenshot', { format: 'png' }); writeFileSync(path.join(audit, 'instructional-desktop.png'), Buffer.from(instructionalDesktop.data, 'base64'));
   await evaluate(() => document.querySelector('[aria-label="Search strategy group"]').querySelectorAll('button')[1].click());
   assert.equal(await evaluate('Array.from(document.querySelectorAll(".strategy-card")).filter(e=>!e.hidden).length'), 6);
   await evaluate(() => document.querySelector('[aria-label="Search strategy group"]').querySelectorAll('button')[0].click());
@@ -78,15 +91,30 @@ try {
   await evaluate(() => document.querySelector('#main-links a[href="#home"]').click());
   assert.equal(await evaluate('document.querySelector(".menu-toggle").getAttribute("aria-expanded")'), 'false');
   assert.ok(await evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), 'Mobile horizontal overflow');
-  await evaluate('document.querySelector("[data-action=download]").click()');
-  for (let i = 0; i < 50 && !readdirSync(downloads).some(f => f.endsWith('.svg')); i++) await delay(100);
-  const exported = readdirSync(downloads).find(f => f.endsWith('.svg'));
-  assert.ok(exported, 'Figure download did not finish');
-  assert.ok(readFileSync(path.join(downloads, exported), 'utf8').includes('<svg'), 'Export is not SVG');
+  for (const [id, filename] of [['figure-distributions', 'response-distributions.svg'], ['figure-instructional-sequences', 'instructional-sequences.svg'], ['figure-estimates', 'comparative-estimates.svg']]) {
+    await evaluate(`document.querySelector('[data-action="download"][data-figure="${id}"]').click()`);
+    for (let i = 0; i < 50 && !existsSync(path.join(downloads, filename)); i++) await delay(100);
+    assert.ok(existsSync(path.join(downloads, filename)), 'Figure download did not finish: ' + filename);
+    const exported = readFileSync(path.join(downloads, filename), 'utf8');
+    assert.ok(exported.includes('<svg'), 'Export is not SVG: ' + filename);
+    if (id === 'figure-instructional-sequences') {
+      assert.ok(exported.includes('round up → 9 days') && exported.includes('round up → 8 days'));
+      assert.ok(!exported.includes('<metadata'));
+    }
+  }
+  await evaluate('document.querySelector(".instructional-sequences").scrollIntoView({block:"start",behavior:"instant"})');
+  await delay(600);
+  assert.ok(await evaluate('document.querySelector(".instructional-scroll").scrollWidth > document.querySelector(".instructional-scroll").clientWidth'), 'Mobile diagram should scroll within its frame');
+  await evaluate('document.querySelector(".instructional-scroll").scrollLeft = 300');
+  assert.ok(await evaluate('document.querySelector(".instructional-scroll").scrollLeft > 0'));
+  const instructionalMobile = await call('Page.captureScreenshot', { format: 'png' }); writeFileSync(path.join(audit, 'instructional-mobile.png'), Buffer.from(instructionalMobile.data, 'base64'));
+  await evaluate('document.querySelector(".instructional-sequences details").open = true');
+  assert.equal(await evaluate('document.querySelectorAll(".instructional-transcript li").length'), 6);
+  assert.ok(await evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), 'Mobile transcript overflow');
   assert.equal(await evaluate('document.querySelectorAll("#findings svg").length > 0'), true);
   const mobile = await call('Page.captureScreenshot', { format: 'png' }); writeFileSync(path.join(audit, 'mobile.png'), Buffer.from(mobile.data, 'base64'));
   assert.deepEqual(errors, [], 'Browser JavaScript errors'); assert.deepEqual(failed, [], 'Browser request failures');
-  console.log('PASS: Chrome rendered desktop/mobile, all session views include Week 7 with exact denominators, course filters and theme work, navigation and mobile menu work, figure download succeeds; no JS errors, failed requests or mobile overflow.');
+  console.log('PASS: Chrome rendered desktop/mobile, instructional diagram and readable transcript, all three SVG downloads, session denominators, course filters, theme, navigation and mobile menu; no JS errors, failed requests or mobile overflow.');
 } finally {
   clearTimeout(timeout); ws?.close(); chrome.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
 }

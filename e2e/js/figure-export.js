@@ -62,6 +62,16 @@ export function estimateSVG() {
 }
 export function downloadFigure(id, name) {
     const el = document.getElementById(id);
+    if (id === 'figure-instructional-sequences') {
+        const image = el?.querySelector('img');
+        if (!image)
+            return;
+        const link = document.createElement('a');
+        link.href = image.src;
+        link.download = name + '.svg';
+        link.click();
+        return;
+    }
     const svg = id === 'figure-distributions' ? distributionSVG(el?.dataset.course, el?.dataset.indicator) : estimateSVG();
     const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })), a = document.createElement('a');
     a.href = url;

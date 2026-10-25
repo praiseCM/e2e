@@ -219,6 +219,18 @@ to{transform:translateY(4px) rotate(1deg)}
 .editorial-findings p{font-size:.79rem;display:flex;align-items:flex-start;gap:16px}
 .editorial-findings p span{color:var(--gold-text);font-size:.6rem;margin-top:4px}
 .figure-block{padding-top:36px;margin-top:36px;border-top:1px solid var(--line)}
+.instructional-sequences figure{margin:20px 0 0}
+.instructional-scroll{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:4px}
+.instructional-scroll:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.instructional-scroll img{display:block;width:100%;min-width:880px;height:auto}
+.instructional-sequences figcaption{font-size:.76rem;line-height:1.9;margin-top:18px;color:var(--muted)}
+.instructional-sequences figcaption strong{display:block;color:var(--text);font-weight:600}
+.instructional-transcript{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.instructional-transcript h4{font-size:.82rem;margin-bottom:14px}
+.instructional-transcript ol{padding-left:20px}
+.instructional-transcript li{margin:0 0 14px;padding-left:6px}
+@media(max-width:700px){.instructional-transcript{grid-template-columns:1fr;gap:14px}}
+@media print{.instructional-scroll{overflow:visible}.instructional-scroll img{min-width:0}}
 .outcome-filter{display:flex;gap:15px;align-items:center;padding:17px 0;border-block:1px solid var(--line);margin-bottom:25px}
 .outcome-filter label{font-size:.71rem;font-weight:650}
 .outcome-filter select{background:transparent;min-width:220px}

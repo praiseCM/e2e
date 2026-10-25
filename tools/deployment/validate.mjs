@@ -17,6 +17,16 @@ for (const section of ['home', 'study', 'findings', 'experience', 'methods', 'li
 assert.equal((html.match(/<template /g) || []).length, 37);
 assert.equal((active.match(/class="strategy-card"/g) || []).length, 15);
 assert.equal((active.match(/class="reference-item"/g) || []).length, 21);
+assert.ok(active.includes('FIGURE 01 / RESPONSE DISTRIBUTIONS'));
+assert.ok(active.includes('FIGURE 02 / INSTRUCTIONAL SEQUENCES'));
+assert.ok(active.includes('FIGURE 03 / TWO DIFFERENT QUESTIONS'));
+assert.ok(!active.includes('FIGURE 02 / TWO DIFFERENT QUESTIONS'));
+assert.ok(active.includes('id="figure-instructional-sequences"'));
+assert.ok(active.includes('src="./images/instructional-sequences.svg"'));
+for (const text of ['1,000 ÷ (20 × 6) = 8.33', '1,000 ÷ (20 × 7) = 7.14', 'Individual adoption of the steps, verification accuracy, and causal effects were not assessed.']) assert.ok(active.includes(text), 'Instructional context is missing: ' + text);
+const instructionalSVG = read('e2e/images/instructional-sequences.svg');
+assert.ok(!/<metadata|<!DOCTYPE|<script|<foreignObject|\bon\w+\s*=|(?:href|src)\s*=\s*["'](?:https?:|\/\/|file:)/i.test(instructionalSVG), 'Unexpected SVG metadata or active content');
+for (const text of ['WRITE FIRST', 'ASK I2CE', 'VERIFY &amp; REVISE', '1,000 ÷ (20 × 6)', '1,000 ÷ (20 × 7)', 'round up → 9 days', 'round up → 8 days']) assert.ok(instructionalSVG.includes(text), 'Instructional diagram mismatch: ' + text);
 let links = 0;
 function checkLink(value, from, isAsset = false) {
   if (!value || value.startsWith('data:') || value.startsWith('blob:') || value.startsWith('mailto:') || value.startsWith('tel:')) return;

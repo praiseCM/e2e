@@ -12,13 +12,16 @@ const mapping = {
   'research-site/live/data.js': 'js/data.js',
   'research-site/live/figure-export.js': 'js/figure-export.js',
   'research-site/public/favicon.svg': 'favicon.svg',
+  'research-site/public/instructional-sequences.svg': 'images/instructional-sequences.svg',
 };
 const write = (file, value) => { const dest = path.join(site, file); mkdirSync(path.dirname(dest), { recursive: true }); writeFileSync(dest, value); };
 // Generated files are refreshed; unexpected files are never removed.
 for (const dir of ['assets', 'css', 'js', 'images']) mkdirSync(path.join(site, dir), { recursive: true });
 for (const [source, dest] of Object.entries(mapping)) copyFileSync(path.join(root, source), path.join(site, dest));
 let html = read('research-site/index.html')
+  .replaceAll('\r\n', '\n')
   .replaceAll('./public/favicon.svg', './favicon.svg')
+  .replaceAll('./public/instructional-sequences.svg', './images/instructional-sequences.svg')
   .replaceAll('./live/site.css', './css/site.css')
   .replaceAll('./live/app.js', './js/app.js');
 const approved = c.publicReleaseApproved === true && c.domainConfirmed === true;

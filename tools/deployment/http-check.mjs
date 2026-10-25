@@ -13,6 +13,7 @@ try {
     if (file.endsWith('.js')) assert.match(response.headers.get('content-type'), /javascript/);
     if (file.endsWith('.css')) assert.match(response.headers.get('content-type'), /text\/css/);
     if (file.endsWith('.png')) assert.match(response.headers.get('content-type'), /image\/png/);
+    if (file.endsWith('.svg')) assert.match(response.headers.get('content-type'), /image\/svg\+xml/);
     await response.arrayBuffer();
   }
   for (const file of ['Analysis/data/primary_analysis.csv', 'Analysis-rev.1/data/pulse_coded.csv', 'research-site/index.html', '.env', 'not-a-real-page']) {

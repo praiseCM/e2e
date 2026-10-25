@@ -38,7 +38,7 @@ function wire(root=document){
   all('.figure-tools',root).forEach(tools=>{
     const figure=tools.closest('.figure-block')?.querySelector('.export-figure');if(!figure)return;
     const [download,print]=tools.querySelectorAll('button');
-    download.dataset.action='download';download.dataset.figure=figure.id;
+    download.dataset.action='download';download.dataset.figure=figure.id;download.dataset.name=tools.dataset.figureName;
     print.dataset.action='print';
   });
   const filters=root.querySelector('.hub-filters');
@@ -174,7 +174,7 @@ document.addEventListener('click',event=>{
   else if(action==='toggleTheme'){document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('e2e-theme',document.documentElement.dataset.theme);}catch{/* optional device preference */}syncTheme();}
   else if(action==='menu')setMenu(button.getAttribute('aria-expanded')!=='true');
   else if(action==='copy')void copyQuery(button);
-  else if(action==='download')downloadFigure(button.dataset.figure,button.dataset.figure==='figure-distributions'?'response-distributions':'comparative-estimates');
+  else if(action==='download')downloadFigure(button.dataset.figure,button.dataset.name);
   else if(action==='print')window.print();
 });
 document.addEventListener('change',event=>{
