@@ -11,6 +11,7 @@ const mapping = {
   'research-site/live/charts.js': 'js/charts.js',
   'research-site/live/data.js': 'js/data.js',
   'research-site/live/figure-export.js': 'js/figure-export.js',
+  'research-site/live/instructional-interactions.js': 'js/instructional-interactions.js',
   'research-site/public/favicon.svg': 'favicon.svg',
   'research-site/public/instructional-sequences.svg': 'images/instructional-sequences.svg',
 };

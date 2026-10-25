@@ -12,7 +12,7 @@ const audit = path.join(root, '.deployment-audit'); mkdirSync(audit, { recursive
 const profile = mkdtempSync(path.join(audit, 'chrome-'));
 const downloads = path.join(profile, 'downloads'); mkdirSync(downloads);
 const server = createSiteServer(); server.listen(0, '127.0.0.1'); await once(server, 'listening');
-const origin = 'http://127.0.0.1:' + server.address().port;
+const origin = process.env.E2E_BROWSER_ORIGIN || 'http://127.0.0.1:' + server.address().port;
 const chrome = spawn(executable, ['--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--remote-debugging-port=0', '--user-data-dir=' + profile, 'about:blank'], { windowsHide: true, stdio: 'ignore' });
 let ws, next = 0;
 const pending = new Map(), errors = [], failed = [];
@@ -48,12 +48,64 @@ try {
     assert.equal(await evaluate('document.querySelectorAll("#figure-instructional-sequences").length'), 1);
   }
   await evaluate('document.querySelector(".instructional-sequences").scrollIntoView({block:"start",behavior:"instant"})');
-  for (let i = 0; i < 50; i++) {
-    if (await evaluate('document.querySelector("#figure-instructional-sequences img").complete && document.querySelector("#figure-instructional-sequences img").naturalWidth > 0')) break;
-    await delay(100);
+  assert.ok(await evaluate('!/\\bfigure\\s*0?[123]\\b/i.test(document.body.textContent)'), 'Manuscript numbering is visible');
+  for (const course of ['G1', 'G2']) {
+    await evaluate(`document.querySelector('[data-sequence-course="${course}"]').click()`);
+    for (const step of [0, 1, 2]) {
+      await evaluate(`document.querySelector('#sequence-${course}-tab-${step}').click()`);
+      assert.ok(await evaluate(`!document.querySelector('#sequence-${course}-step-${step}').hidden`));
+      assert.equal(await evaluate(`document.querySelectorAll('#sequence-course-${course} [data-sequence-panel]:not([hidden])').length`), 1);
+      assert.equal(await evaluate(`document.querySelector('#sequence-course-${course} [data-sequence-previous]').disabled`), step === 0);
+      assert.equal(await evaluate(`document.querySelector('#sequence-course-${course} [data-sequence-next]').disabled`), step === 2);
+    }
   }
-  assert.ok(await evaluate('document.querySelector("#figure-instructional-sequences img").naturalWidth > 0'), 'Instructional diagram did not load');
-  assert.ok(await evaluate('document.querySelector("#instructional-caption").textContent.startsWith("Figure 2.")'));
+  await evaluate('document.querySelector("[data-sequence-course=G1]").click()');
+  assert.ok(await evaluate('!document.querySelector("#sequence-G1-step-2").hidden'), 'Course switching must preserve the selected step');
+  await evaluate('document.querySelector("#sequence-course-G1 [data-sequence-previous]").click()');
+  for (let method = 0; method < 5; method++) {
+    await evaluate(`document.querySelector('[data-communication="${method}"]').click()`);
+    assert.equal(await evaluate('document.querySelector("[data-communication-title]").textContent'), ['Sketches','Technical drawings','Models','Reports','Presentations'][method]);
+  }
+  await evaluate('document.querySelector("#sequence-course-G1 [data-sequence-next]").click()');
+  for (const decision of ['add', 'justify', 'retain']) {
+    await evaluate(`document.querySelector('[data-reflection="${decision}"]').click()`);
+    assert.ok(await evaluate('document.querySelector("[data-reflection-feedback]").textContent.length > 65'));
+  }
+  // Exercise real keyboard navigation and ensure focus follows the active tab.
+  await evaluate('document.querySelector("#sequence-G1-tab-2").focus()');
+  await call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Home', code: 'Home' });
+  await call('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Home', code: 'Home' });
+  assert.equal(await evaluate('document.activeElement.id'), 'sequence-G1-tab-0');
+  await call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowRight', code: 'ArrowRight' });
+  await call('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowRight', code: 'ArrowRight' });
+  assert.equal(await evaluate('document.activeElement.id'), 'sequence-G1-tab-1');
+  await evaluate('document.querySelector("[data-sequence-course=G2]").click(); document.querySelector("#sequence-G2-tab-1").click()');
+  const setInput = async (name, value) => evaluate(`(() => { const input = document.querySelector('[data-duration-input="${name}"]'); input.value = ${JSON.stringify(String(value))}; input.dispatchEvent(new Event('input', {bubbles:true})); })()`);
+  assert.equal(await evaluate('document.querySelector("[data-duration=worksheet]").textContent'), '9');
+  assert.equal(await evaluate('document.querySelector("[data-duration=suggestion]").textContent'), '8');
+  await setInput('suggestion', 3);
+  assert.ok(await evaluate('document.querySelector("[data-duration-difference]").textContent.includes("8 whole working days longer")'));
+  await setInput('suggestion', 6);
+  assert.ok(await evaluate('document.querySelector("[data-duration-difference]").textContent.includes("same whole-day duration")'));
+  for (const invalid of [0, -1, '', 1.5, 10001]) {
+    await setInput('crew', invalid);
+    assert.equal(await evaluate('document.querySelector("[data-duration-input=crew]").getAttribute("aria-invalid")'), 'true');
+    assert.ok(await evaluate('Array.from(document.querySelectorAll("[data-duration-results]"), el=>el.hidden).every(Boolean)'), 'Invalid inputs must hide stale results');
+  }
+  await evaluate('document.querySelector("[data-sequence-reset]").click()');
+  await setInput('quantity', .07); await setInput('crew', 1); await setInput('worksheet', .01);
+  assert.equal(await evaluate('document.querySelector("[data-duration=worksheet]").textContent'), '7');
+  await setInput('quantity', .0701);
+  assert.equal(await evaluate('document.querySelector("[data-duration=worksheet]").textContent'), '8');
+  await evaluate('document.querySelector("[data-sequence-reset]").click()');
+  assert.equal(await evaluate('document.querySelector("[data-duration=worksheet]").textContent'), '9');
+  assert.equal(await evaluate('document.querySelector("[data-duration=suggestion]").textContent'), '8');
+  await evaluate('document.querySelector("#sequence-G2-tab-2").click()');
+  for (const decision of ['accept', 'retain', 'verify']) {
+    await evaluate(`document.querySelector('[data-verification="${decision}"]').click()`);
+    assert.ok(await evaluate('document.querySelector("[data-verification-feedback]").textContent.length > 65'));
+  }
+  await evaluate('document.querySelector("#sequence-G2-tab-1").click()');
   await delay(600);
   const instructionalDesktop = await call('Page.captureScreenshot', { format: 'png' }); writeFileSync(path.join(audit, 'instructional-desktop.png'), Buffer.from(instructionalDesktop.data, 'base64'));
   await evaluate(() => document.querySelector('[aria-label="Search strategy group"]').querySelectorAll('button')[1].click());
@@ -104,17 +156,22 @@ try {
   }
   await evaluate('document.querySelector(".instructional-sequences").scrollIntoView({block:"start",behavior:"instant"})');
   await delay(600);
-  assert.ok(await evaluate('document.querySelector(".instructional-scroll").scrollWidth > document.querySelector(".instructional-scroll").clientWidth'), 'Mobile diagram should scroll within its frame');
-  await evaluate('document.querySelector(".instructional-scroll").scrollLeft = 300');
-  assert.ok(await evaluate('document.querySelector(".instructional-scroll").scrollLeft > 0'));
+  for (const course of ['G1', 'G2']) for (const step of [0,1,2]) {
+    await evaluate(`document.querySelector('[data-sequence-course="${course}"]').click(); document.querySelector('#sequence-${course}-tab-${step}').click()`);
+    assert.ok(await evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), 'Mobile explorer overflow: ' + course + '/' + step);
+  }
+  await evaluate('document.querySelector("#sequence-G2-tab-1").click()');
   const instructionalMobile = await call('Page.captureScreenshot', { format: 'png' }); writeFileSync(path.join(audit, 'instructional-mobile.png'), Buffer.from(instructionalMobile.data, 'base64'));
   await evaluate('document.querySelector(".instructional-sequences details").open = true');
-  assert.equal(await evaluate('document.querySelectorAll(".instructional-transcript li").length'), 6);
+  await evaluate('document.querySelector(".instructional-scroll").scrollIntoView({behavior:"instant",block:"center"})');
+  for (let i=0;i<50;i++) { if (await evaluate('document.querySelector(".instructional-scroll img").complete && document.querySelector(".instructional-scroll img").naturalWidth > 0')) break; await delay(100); }
+  assert.ok(await evaluate('document.querySelector(".instructional-scroll img").naturalWidth > 0'), 'Overview diagram did not load');
+  assert.ok(await evaluate('document.querySelector(".instructional-scroll").scrollWidth > document.querySelector(".instructional-scroll").clientWidth'));
   assert.ok(await evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), 'Mobile transcript overflow');
   assert.equal(await evaluate('document.querySelectorAll("#findings svg").length > 0'), true);
   const mobile = await call('Page.captureScreenshot', { format: 'png' }); writeFileSync(path.join(audit, 'mobile.png'), Buffer.from(mobile.data, 'base64'));
   assert.deepEqual(errors, [], 'Browser JavaScript errors'); assert.deepEqual(failed, [], 'Browser request failures');
-  console.log('PASS: Chrome rendered desktop/mobile, instructional diagram and readable transcript, all three SVG downloads, session denominators, course filters, theme, navigation and mobile menu; no JS errors, failed requests or mobile overflow.');
+  console.log('PASS: desktop/mobile, both chatbot pathways and six steps, keyboard navigation, all communication methods and reflection decisions, calculator variants and invalid inputs, overview and SVG downloads, existing filters; no JS errors, failed requests or mobile overflow.');
 } finally {
   clearTimeout(timeout); ws?.close(); chrome.kill(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
 }

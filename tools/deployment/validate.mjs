@@ -17,14 +17,14 @@ for (const section of ['home', 'study', 'findings', 'experience', 'methods', 'li
 assert.equal((html.match(/<template /g) || []).length, 37);
 assert.equal((active.match(/class="strategy-card"/g) || []).length, 15);
 assert.equal((active.match(/class="reference-item"/g) || []).length, 21);
-assert.ok(active.includes('FIGURE 01 / RESPONSE DISTRIBUTIONS'));
-assert.ok(active.includes('FIGURE 02 / INSTRUCTIONAL SEQUENCES'));
-assert.ok(active.includes('FIGURE 03 / TWO DIFFERENT QUESTIONS'));
-assert.ok(!active.includes('FIGURE 02 / TWO DIFFERENT QUESTIONS'));
+assert.ok(!/\bfigure\s*0?[123]\b/i.test(html), 'Manuscript figure numbering in website');
+for (const heading of ['RESPONSE DISTRIBUTIONS', 'INSTRUCTIONAL SEQUENCES', 'TWO DIFFERENT QUESTIONS']) assert.ok(active.includes(heading));
 assert.ok(active.includes('id="figure-instructional-sequences"'));
 assert.ok(active.includes('src="./images/instructional-sequences.svg"'));
-for (const text of ['1,000 ÷ (20 × 6) = 8.33', '1,000 ÷ (20 × 7) = 7.14', 'Individual adoption of the steps, verification accuracy, and causal effects were not assessed.']) assert.ok(active.includes(text), 'Instructional context is missing: ' + text);
+for (const course of ['G1', 'G2']) for (let step = 0; step < 3; step++) assert.ok(ids.includes(`sequence-${course}-step-${step}`));
+for (const text of ['Worksheet productivity', 'Illustrative AI productivity', 'individual adoption, verification accuracy, and learning effects were not measured']) assert.ok(active.includes(text), 'Instructional context is missing: ' + text);
 const instructionalSVG = read('e2e/images/instructional-sequences.svg');
+assert.ok(!/\bfigure\s*0?[123]\b/i.test(instructionalSVG), 'Manuscript figure numbering in download');
 assert.ok(!/<metadata|<!DOCTYPE|<script|<foreignObject|\bon\w+\s*=|(?:href|src)\s*=\s*["'](?:https?:|\/\/|file:)/i.test(instructionalSVG), 'Unexpected SVG metadata or active content');
 for (const text of ['WRITE FIRST', 'ASK I2CE', 'VERIFY &amp; REVISE', '1,000 ÷ (20 × 6)', '1,000 ÷ (20 × 7)', 'round up → 9 days', 'round up → 8 days']) assert.ok(instructionalSVG.includes(text), 'Instructional diagram mismatch: ' + text);
 let links = 0;
@@ -87,6 +87,12 @@ for (const [key, source] of [['research', 'research.json'], ['searches', 'search
   if (existsSync(path.join(root, 'research-site/src/data', source))) assert.deepEqual(data[key], JSON.parse(read('research-site/src/data/' + source)), 'Research data changed during copying');
 }
 const charts = await import(pathToFileURL(path.join(site, 'js/charts.js')).href);
+const { calculateDuration } = await import(pathToFileURL(path.join(site, 'js/instructional-interactions.js')).href);
+assert.equal(calculateDuration(1000, 20, 6).days, 9);
+assert.equal(calculateDuration(1000, 20, 7).days, 8);
+assert.equal(calculateDuration(.07, 1, .01).days, 7, 'Floating-point round-up boundary');
+assert.equal(calculateDuration(.0701, 1, .01).days, 8, 'Fractional working day must round up');
+for (const input of [[0,20,6], [1000,0,6], [1000,1.5,6], [1000,20,-6], [Infinity,20,6], [NaN,20,6]]) assert.equal(calculateDuration(...input), null);
 for (const course of ['G1', 'G2']) for (const item of data.indicators) for (const width of [300, 900]) assert.ok(!/NaN|undefined/.test(charts.distributionPlot(course, item.id, width)));
 for (const course of ['G1', 'G2']) for (const view of ['use', 'rating']) assert.ok(!/NaN|undefined/.test(charts.sessionPlot(course, view, 320)));
 console.log(`PASS: ${actual.length} deployment files, ${links} local references, navigation anchors, 37 interactive templates, JS syntax, unchanged research data, responsive charts, SEO, and no detected mixed-content references or participant markers.`);

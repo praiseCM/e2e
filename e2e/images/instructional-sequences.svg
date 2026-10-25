@@ -1,5 +1,5 @@
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="504.72pt" height="334.08pt" viewBox="0 0 504.72 334.08" xmlns="http://www.w3.org/2000/svg" version="1.1">
- <title>Figure 2. Representative I2CE and ScheduleAI instructional sequences</title>
+ <title>Representative I2CE and ScheduleAI instructional sequences</title>
  <desc>G1: write, consult I2CE, discuss and revise. G2: calculate nine days using the worksheet productivity, compare an illustrative eight-day suggestion using a higher rate, and verify assumptions. Optional activities, not measured performance.</desc>
  <defs>
   <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
@@ -222,7 +222,7 @@ L 487.548 177.92208
     <text style="font-size: 9.7px; font-family: Arial, sans-serif; text-anchor: start; fill: #596a77" x="15.1704" y="36.493554" transform="rotate(-0 15.1704 36.493554)">Students begin with disciplinary work, consult a course chatbot, then evaluate and explain.</text>
    </g>
    <g id="text_3">
-    <text style="font-weight: 700; font-size: 10.7px; font-family: Arial, sans-serif; text-anchor: start; fill: #0d6c73" x="17.172" y="53.132101" transform="rotate(-0 17.172 53.132101)">A  |  G1  •  INTRODUCTION TO CIVIL ENGINEERING</text>
+    <text style="font-weight: 700; font-size: 10.7px; font-family: Arial, sans-serif; text-anchor: start; fill: #0d6c73" x="17.172" y="53.132101" transform="rotate(-0 17.172 53.132101)">G1  •  INTRODUCTION TO CIVIL ENGINEERING</text>
    </g>
    <g id="text_4">
     <text style="font-size: 9.35px; font-family: Arial, sans-serif; text-anchor: start; fill: #596a77" x="17.172" y="67.284845" transform="rotate(-0 17.172 67.284845)">I2CE chatbot | Concept explanation and classroom discussion</text>
@@ -264,7 +264,7 @@ L 487.548 177.92208
     <text style="font-size: 9.05px; font-family: Arial, sans-serif; text-anchor: start; fill: #193146" x="363.4488" y="151.070674" transform="rotate(-0 363.4488 151.070674)">response and explain why.</text>
    </g>
    <g id="text_17">
-    <text style="font-weight: 700; font-size: 10.7px; font-family: Arial, sans-serif; text-anchor: start; fill: #aa5932" x="17.172" y="192.950341" transform="rotate(-0 17.172 192.950341)">B  |  G2  •  CONSTRUCTION PROJECT SCHEDULING</text>
+    <text style="font-weight: 700; font-size: 10.7px; font-family: Arial, sans-serif; text-anchor: start; fill: #aa5932" x="17.172" y="192.950341" transform="rotate(-0 17.172 192.950341)">G2  •  CONSTRUCTION PROJECT SCHEDULING</text>
    </g>
    <g id="text_18">
     <text style="font-size: 9.3px; font-family: Arial, sans-serif; text-anchor: start; fill: #596a77" x="17.172" y="207.089874" transform="rotate(-0 17.172 207.089874)">ScheduleAI chatbot | Townhouse schedule, 20-worker crew; rates in m² per worker-day</text>

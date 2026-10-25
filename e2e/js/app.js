@@ -1,6 +1,7 @@
 import { research, searches, bibliography } from './data.js';
 import { distributionPlot, sessionPlot, escapeHTML } from './charts.js';
 import { downloadFigure } from './figure-export.js';
+import { setupInstructionalSequences } from './instructional-interactions.js';
 
 const state={study:'both',course:'both',outcome:'all',movement:'G1',sessionCourse:'G1',sessionView:'use',topic:'help',session:null,group:'',theme:'',discipline:'all',methodOnly:false,refSearch:'',refTag:''};
 const groups={
@@ -56,6 +57,7 @@ function wire(root=document){
   const themeButton=root.querySelector('.nav-actions .icon-button:not(.menu-toggle)');if(themeButton)themeButton.dataset.action='toggleTheme';
   const menu=root.querySelector('.menu-toggle');if(menu)menu.dataset.action='menu';
   setupPlots(root);
+  setupInstructionalSequences(root);
 }
 function updateGroup(label,value){
   const group=all('[role="group"][aria-label]').find(el=>el.getAttribute('aria-label')===label);

@@ -1,19 +1,22 @@
 Website validation — 2026-10-24
 
-PASS: Figures 1–3 agree with the reviewed study materials. The instructional
-diagram describes optional teaching opportunities; the formwork calculation
-contrasts the worksheet productivity assumption with an illustrative suggestion.
-The course descriptions and accessible figure transcript preserve this distinction.
+PASS: Research charts and instructional walkthroughs agree with the reviewed
+study materials. The website and overview download have no manuscript figure
+numbering. Separate I2CE and ScheduleAI pathways expose three steps each,
+communication-method exploration, reflection prompts, editable formwork inputs,
+and comparisons between worksheet and illustrative AI productivity assumptions.
 
 PASS: 97 matched respondents; 1,634 session submissions across 23 forms;
 all response distributions, comparison intervals, session denominators, rating
 means, response statuses, topic counts, and the 67/73 co-occurrence result agree
 with the local aggregate analysis.
 
-PASS: 20 explicitly allowlisted deployment files; 42 local references;
+PASS: 21 explicitly allowlisted deployment files; 43 local references;
 37 interaction templates; local HTTP assets and private-path isolation;
 desktop/mobile browser behavior; all three completed SVG downloads;
-responsive diagram scrolling and a six-step text alternative.
+all six activity steps, keyboard tab navigation, preserved course selections,
+live calculations, equal/longer/shorter durations, invalid-input handling,
+fractional-day rounding boundaries, reset behavior, and the overview diagram.
 No browser exceptions, failed requests, or mobile page overflow occurred.
 
 PASS: original manuscripts, supplementary documents, PDFs, analysis inputs,
